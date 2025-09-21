@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-16"?>
 <Task version="Droit1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
   <RegistrationInfo>
-    <Description>Hibernate le PC après une période d'inactivité, sauf si PowerToys Awake est actif</Description>
+    <Description>Hibernate the PC after a period of inactivity, unless PowerToys Awake is active</Description>
   </RegistrationInfo>
   <Triggers>
     <IdleTrigger>

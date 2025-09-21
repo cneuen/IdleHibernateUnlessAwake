@@ -11,12 +11,12 @@ if (-not $isAdmin) {
     exit
 }
 
-# Détecter le dossier d'installation
+# Detect installation directory
 $installDir = Join-Path $env:LOCALAPPDATA "Programs\IdleHibernateUnlessAwake"
 $installSrcDir = Join-Path $installDir "src"
 $runnerPath = Join-Path $installSrcDir "runner.ps1"
 
-# Si le script runner.ps1 n'existe pas dans le dossier d'installation, essayer de le copier depuis le repo
+# If runner.ps1 doesn't exist in the installation directory, try to copy it from the repo
 if (-not (Test-Path $runnerPath)) {
   $repoRoot = Split-Path -Parent $PSCommandPath
   $repoRoot = Split-Path -Parent $repoRoot   # Go up from tools\ to root folder
@@ -27,12 +27,12 @@ if (-not (Test-Path $runnerPath)) {
     throw "runner.ps1 not found: $sourceRunnerPath"
   }
 
-  # Créer le dossier d'installation si nécessaire
+  # Create installation directory if needed
   if (-not (Test-Path $installSrcDir)) {
     New-Item -Path $installSrcDir -ItemType Directory -Force | Out-Null
   }
 
-  # Copier les fichiers seulement s'ils n'existent pas déjà
+  # Only copy files if they don't already exist
   if (-not (Test-Path $runnerPath)) {
     Copy-Item -Path $sourceRunnerPath -Destination $runnerPath -Force
   }
@@ -48,28 +48,28 @@ $pwsh = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.ex
 Write-Host "PowerShell path: $pwsh"
 Write-Host "Runner path: $runnerPath"
 
-# Charger et personnaliser le template XML
+# Load and customize the XML template
 $templatePath = Join-Path $PSScriptRoot "task-template.xml"
 if (-not (Test-Path $templatePath)) {
-    throw "Template XML introuvable : $templatePath"
+    throw "XML template not found: $templatePath"
 }
 
 $taskXml = Get-Content -Path $templatePath -Raw -Encoding Unicode
 $taskXml = $taskXml.Replace("__POWERSHELL_PATH__", $pwsh)
 $taskXml = $taskXml.Replace("__RUNNER_PATH__", $runnerPath)
 
-# Sauvegarder la définition XML dans un fichier temporaire
+# Save the XML definition to a temporary file
 $xmlPath = [System.IO.Path]::GetTempFileName()
 $taskXml | Out-File -FilePath $xmlPath -Encoding Unicode
 
 Write-Host "Creating scheduled task with XML definition..." -ForegroundColor Yellow
 
 try {
-    # Utiliser schtasks avec le fichier XML
+    # Use schtasks with the XML file
     $output = & schtasks.exe /create /tn $TaskName /xml $xmlPath /f 2>&1
     $success = $LASTEXITCODE -eq 0
 
-    # Afficher la sortie pour le débogage
+    # Display output for debugging
     $output | ForEach-Object { Write-Host $_ }
 
     if (-not $success) {
@@ -77,7 +77,7 @@ try {
     }
 }
 finally {
-    # Nettoyer le fichier temporaire
+    # Clean up temporary file
     if (Test-Path $xmlPath) {
         Remove-Item -Path $xmlPath -Force
     }
