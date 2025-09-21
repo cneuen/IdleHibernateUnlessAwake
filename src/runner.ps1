@@ -1,8 +1,14 @@
+param (
+    [switch]$EnableLogging = $false
+)
+
 # Hibernate si Awake est OFF après 15 minutes d'inactivité
 $log = Join-Path $env:TEMP 'IdleAwakeProbe.txt'
 function Write-Log($m) {
-    $ts = Get-Date -Format o
-    "$ts | $m" | Out-File -FilePath $log -Append -Encoding UTF8
+    if ($EnableLogging) {
+        $ts = Get-Date -Format o
+        "$ts | $m" | Out-File -FilePath $log -Append -Encoding UTF8
+    }
 }
 
 Write-Log "Task started; user=$(whoami)"
