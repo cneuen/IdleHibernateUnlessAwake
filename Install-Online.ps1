@@ -65,30 +65,7 @@ Remove-Item -Path $zipPath -Force
 Write-Host "`n--- Configuration ---" -ForegroundColor Green
 $defaultSleepMinutes = 15
 $sleepMinutes = Read-Host -Prompt "Hiberner après combien de minutes d'inactivité ? (défaut: $defaultSleepMinutes)"
-if ([string]::IsNullOrWhiteSpace($sleepMinutes) -or -not ($sleepMinutes -match '^\d+
-
-
-# --- 5. Installation de la tâche planifiée ---
-Write-Host "`n--- Installation de la tâche planifiée ---" -ForegroundColor Green
-$installTaskScript = Join-Path $installDir "tools\Install-IdleHibernateTask.ps1"
-
-if (-not (Test-Path $installTaskScript)) {
-    Write-Error "Le script d'installation n'a pas été trouvé sur '$installTaskScript'. L'installation a échoué."
-    return
-}
-
-# Exécution du script d'installation
-if ($pscmdlet.ShouldProcess($installTaskScript, "Exécution du script")) {
-    # On se déplace dans le répertoire pour que les chemins relatifs du script fonctionnent
-    Push-Location $installDir
-    & $installTaskScript
-    Pop-Location
-}
-
-Write-Host "`nInstallation terminée avec succès !" -ForegroundColor Green
-Write-Host "Le script est installé dans '$installDir'."
-Write-Host "Vous pouvez le désinstaller à tout moment en lançant 'tools\Uninstall-IdleHibernateTask.ps1' depuis ce répertoire."
-)) {
+if ([string]::IsNullOrWhiteSpace($sleepMinutes) -or -not ($sleepMinutes -match '^\d+$')) {
     $sleepMinutes = $defaultSleepMinutes
 }
 
