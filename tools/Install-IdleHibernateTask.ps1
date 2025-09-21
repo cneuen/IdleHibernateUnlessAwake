@@ -2,27 +2,36 @@ param(
   [string]$TaskName = "IdleHibernateUnlessAwake"
 )
 
-$repoRoot = Split-Path -Parent $PSCommandPath
-$repoRoot = Split-Path -Parent $repoRoot   # Go up from tools\ to root folder
-$sourceRunnerPath = Join-Path $repoRoot "src\runner.ps1"
-$sourceConfigPath = Join-Path $repoRoot "src\config.json"
-
-if (-not (Test-Path $sourceRunnerPath)) {
-  throw "runner.ps1 not found: $sourceRunnerPath"
-}
-
-# Créer le dossier d'installation
+# Détecter le dossier d'installation
 $installDir = Join-Path $env:LOCALAPPDATA "Programs\IdleHibernateUnlessAwake"
 $installSrcDir = Join-Path $installDir "src"
-if (-not (Test-Path $installSrcDir)) {
-  New-Item -Path $installSrcDir -ItemType Directory -Force | Out-Null
-}
-
-# Copier les fichiers
 $runnerPath = Join-Path $installSrcDir "runner.ps1"
-Copy-Item -Path $sourceRunnerPath -Destination $runnerPath -Force
-if (Test-Path $sourceConfigPath) {
-  Copy-Item -Path $sourceConfigPath -Destination (Join-Path $installSrcDir "config.json") -Force
+
+# Si le script runner.ps1 n'existe pas dans le dossier d'installation, essayer de le copier depuis le repo
+if (-not (Test-Path $runnerPath)) {
+  $repoRoot = Split-Path -Parent $PSCommandPath
+  $repoRoot = Split-Path -Parent $repoRoot   # Go up from tools\ to root folder
+  $sourceRunnerPath = Join-Path $repoRoot "src\runner.ps1"
+  $sourceConfigPath = Join-Path $repoRoot "src\config.json"
+
+  if (-not (Test-Path $sourceRunnerPath)) {
+    throw "runner.ps1 not found: $sourceRunnerPath"
+  }
+
+  # Créer le dossier d'installation si nécessaire
+  if (-not (Test-Path $installSrcDir)) {
+    New-Item -Path $installSrcDir -ItemType Directory -Force | Out-Null
+  }
+
+  # Copier les fichiers seulement s'ils n'existent pas déjà
+  if (-not (Test-Path $runnerPath)) {
+    Copy-Item -Path $sourceRunnerPath -Destination $runnerPath -Force
+  }
+  
+  $configDestPath = Join-Path $installSrcDir "config.json"
+  if (Test-Path $sourceConfigPath -and -not (Test-Path $configDestPath)) {
+    Copy-Item -Path $sourceConfigPath -Destination $configDestPath -Force
+  }
 }
 
 # Action: launch PowerShell on runner.ps1
