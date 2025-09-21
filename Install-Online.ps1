@@ -7,41 +7,41 @@ param()
 $githubRepo = "cneuen/IdleHibernateUnlessAwake"
 $defaultInstallDir = Join-Path $env:LOCALAPPDATA "Programs\IdleHibernateUnlessAwake"
 
-# --- 1. Choisir le dossier d'installation ---
-Write-Host "Répertoire d'installation pour IdleHibernateUnlessAwake." -ForegroundColor Green
-$installDir = Read-Host -Prompt "Entrez le chemin (défaut: $defaultInstallDir)"
+# --- 1. Choose Installation Directory ---
+Write-Host "Installation directory for IdleHibernateUnlessAwake." -ForegroundColor Green
+$installDir = Read-Host -Prompt "Enter path (default: $defaultInstallDir)"
 if ([string]::IsNullOrWhiteSpace($installDir)) {
     $installDir = $defaultInstallDir
 }
 
 if (Test-Path $installDir) {
-    $overwrite = Read-Host "Le répertoire '$installDir' existe déjà. Voulez-vous le remplacer ? (o/n)"
+    $overwrite = Read-Host "The directory '$installDir' already exists. Do you want to replace it? (y/n)"
     if ($overwrite -ne 'o') {
-        Write-Host "Installation annulée."
+        Write-Host "Installation cancelled."
         return
     }
-    Write-Host "Nettoyage du répertoire existant..."
+    Write-Host "Cleaning existing directory..."
     Remove-Item -Path $installDir -Recurse -Force
 }
 
-Write-Host "Création du répertoire '$installDir'..."
+Write-Host "Creating directory '$installDir'..."
     New-Item -Path $installDir -ItemType Directory -Force | Out-Null
 
 
-# --- 2. Téléchargement depuis GitHub ---
+# --- 2. Download from GitHub ---
 $zipUrl = "https://github.com/$githubRepo/archive/refs/tags/0.5.0.zip"
 $zipPath = Join-Path $env:TEMP "IdleHibernateUnlessAwake-main.zip"
 
-Write-Host "Téléchargement de la dernière version depuis GitHub..." -ForegroundColor Green
+Write-Host "Downloading latest version from GitHub..." -ForegroundColor Green
     Invoke-WebRequest -Uri $zipUrl -OutFile $zipPath -UseBasicParsing
 
 
-# --- 3. Décompression ---
-Write-Host "Extraction des fichiers..."
-# Les fichiers sont dans un sous-dossier (ex: IdleHibernateUnlessAwake-main)
+# --- 3. Decompression ---
+Write-Host "Extracting files..."
+# Files are in a subfolder (e.g., IdleHibernateUnlessAwake-main)
     Expand-Archive -Path $zipPath -DestinationPath $installDir -Force
 
-# Déplacer les fichiers du sous-dossier vers la racine
+# Move files from subfolder to root
 $unzippedSubFolder = Get-ChildItem -Path $installDir | Where-Object { $_.PSIsContainer } | Select-Object -First 1
 if ($null -ne $unzippedSubFolder) {
     $subFolderPath = $unzippedSubFolder.FullName
@@ -49,23 +49,23 @@ if ($null -ne $unzippedSubFolder) {
     Remove-Item -Path $subFolderPath -Recurse -Force
 }
 
-# Nettoyage du fichier zip
+# Cleaning up zip file
 Remove-Item -Path $zipPath -Force
 
 
-# --- 4. Configuration Interactive ---
+# --- 4. Interactive Configuration ---
 Write-Host "`n--- Configuration ---" -ForegroundColor Green
 $defaultSleepMinutes = 15
-$sleepMinutes = Read-Host -Prompt "Hiberner après combien de minutes d'inactivité ? (défaut: $defaultSleepMinutes)"
+$sleepMinutes = Read-Host -Prompt "Hibernate after how many minutes of inactivity? (default: $defaultSleepMinutes)"
 if ([string]::IsNullOrWhiteSpace($sleepMinutes) -or -not ($sleepMinutes -match '^\d+$')) {
     $sleepMinutes = $defaultSleepMinutes
 }
 
 $sleepSeconds = [int]$sleepMinutes * 60
 
-$enableLoggingChoice = Read-Host -Prompt "Activer les logs de débogage ? (o/n) (défaut: n)"
+$enableLoggingChoice = Read-Host -Prompt "Enable debug logs? (y/n) (default: n)"
 $enableLogging = $false
-if ($enableLoggingChoice -eq 'o') {
+if ($enableLoggingChoice -eq 'y') {
     $enableLogging = $true
 }
 
@@ -75,25 +75,25 @@ $config = @{
 }
 
 $configPath = Join-Path $installDir "src\config.json"
-Write-Host "Création du fichier de configuration sur '$configPath'..."
+Write-Host "Creating configuration file at '$configPath'..."
     $config | ConvertTo-Json | Set-Content -Path $configPath -Encoding UTF8
 
 
-# --- 5. Installation de la tâche planifiée ---
-Write-Host "`n--- Installation de la tâche planifiée ---" -ForegroundColor Green
+# --- 5. Install Scheduled Task ---
+Write-Host "`n--- Installing Scheduled Task ---" -ForegroundColor Green
 $installTaskScript = Join-Path $installDir "tools\Install-IdleHibernateTask.ps1"
 
 if (-not (Test-Path $installTaskScript)) {
-    Write-Error "Le script d'installation n'a pas été trouvé sur '$installTaskScript'. L'installation a échoué."
+    Write-Error "Installation script not found at '$installTaskScript'. Installation failed."
     return
 }
 
-# Exécution du script d'installation
-    # On se déplace dans le répertoire pour que les chemins relatifs du script fonctionnent
+# Executing installation script
+    # Change to directory so relative paths in script work
     Push-Location $installDir
     & $installTaskScript
     Pop-Location
 
-Write-Host "`nInstallation terminée avec succès !" -ForegroundColor Green
-Write-Host "Le script est installé dans '$installDir'."
-Write-Host "Vous pouvez le désinstaller à tout moment en lançant 'tools\Uninstall-IdleHibernateTask.ps1' depuis ce répertoire."
+Write-Host "`nInstallation completed successfully!" -ForegroundColor Green
+Write-Host "The script is installed in '$installDir'."
+Write-Host "You can uninstall it at any time by running 'tools\Uninstall-IdleHibernateTask.ps1' from this directory."
