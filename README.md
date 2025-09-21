@@ -24,15 +24,30 @@ This script is useful in cases where the PC only supports S0 sleep (Modern Stand
   powercfg /hibernate on
   ```
 
-## Installation
+## Easy Installation (Online)
 
-To install the scheduled task, run the following command in PowerShell:
+A single command to download, configure, and install everything.
+
+Open a PowerShell terminal and run the following command. It will guide you through the installation.
+
+```powershell
+Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/cneuen/IdleHibernateUnlessAwake/main/Install-Online.ps1'))
+```
+
+This command will:
+1.  Temporarily allow script execution for the current process.
+2.  Download and run the `Install-Online.ps1` script from GitHub.
+3.  The script will then prompt you for the installation directory and configuration settings.
+
+## Manual Installation
+
+If you have already downloaded the files, you can install the scheduled task by running the following command in PowerShell:
 
 ```powershell
 .\tools\Install-IdleHibernateTask.ps1
 ```
 
-## Uninstallation
+## Manual Uninstallation
 
 To uninstall the scheduled task, run:
 
