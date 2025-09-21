@@ -1,32 +1,7 @@
 param (
-    [int]$SleepSeconds,
+    [int]$SleepSeconds = 900,
     [switch]$EnableLogging
 )
-
-# --- Configuration ---
-$configPath = Join-Path $PSScriptRoot 'config.json'
-$defaults = @{
-    SleepSeconds = 900
-    EnableLogging = $false
-}
-$fileConfig = @{}
-
-if (Test-Path $configPath) {
-    $fileConfig = Get-Content -Path $configPath -Raw | ConvertFrom-Json
-}
-
-$finalConfig = $defaults.Clone()
-$fileConfig.GetEnumerator() | ForEach-Object { $finalConfig[$_.Name] = $_.Value }
-
-if ($PSBoundParameters.ContainsKey('SleepSeconds')) {
-    $finalConfig.SleepSeconds = $SleepSeconds
-}
-if ($PSBoundParameters.ContainsKey('EnableLogging')) {
-    $finalConfig.EnableLogging = $EnableLogging.IsPresent
-}
-
-$SleepSeconds = $finalConfig.SleepSeconds
-$EnableLogging = $finalConfig.EnableLogging
 
 # Hibernate si Awake est OFF après 15 minutes d'inactivité
 $logDir = Join-Path $env:LOCALAPPDATA 'IdleHibernateUnlessAwake'

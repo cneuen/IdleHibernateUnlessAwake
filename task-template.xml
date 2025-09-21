@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-16"?>
-<Task version="Droit1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
   <RegistrationInfo>
     <Description>Hibernate the PC after a period of inactivity, unless PowerToys Awake is active</Description>
   </RegistrationInfo>
@@ -37,7 +37,7 @@
   <Actions Context="Author">
     <Exec>
       <Command>__POWERSHELL_PATH__</Command>
-      <Arguments>-NoProfile -ExecutionPolicy Bypass -File "__RUNNER_PATH__"</Arguments>
+      <Arguments>-NoProfile -ExecutionPolicy Bypass -File "__RUNNER_PATH__" -EnableLogging -SleepSeconds 900</Arguments>
     </Exec>
   </Actions>
 </Task>

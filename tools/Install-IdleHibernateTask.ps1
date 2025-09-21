@@ -21,7 +21,6 @@ if (-not (Test-Path $runnerPath)) {
   $repoRoot = Split-Path -Parent $PSCommandPath
   $repoRoot = Split-Path -Parent $repoRoot   # Go up from tools\ to root folder
   $sourceRunnerPath = Join-Path $repoRoot "src\runner.ps1"
-  $sourceConfigPath = Join-Path $repoRoot "src\config.json"
 
   if (-not (Test-Path $sourceRunnerPath)) {
     throw "runner.ps1 not found: $sourceRunnerPath"
@@ -32,14 +31,9 @@ if (-not (Test-Path $runnerPath)) {
     New-Item -Path $installSrcDir -ItemType Directory -Force | Out-Null
   }
 
-  # Only copy files if they don't already exist
+  # Copy runner.ps1 if it doesn't already exist
   if (-not (Test-Path $runnerPath)) {
     Copy-Item -Path $sourceRunnerPath -Destination $runnerPath -Force
-  }
-  
-  $configDestPath = Join-Path $installSrcDir "config.json"
-  if (Test-Path $sourceConfigPath -and -not (Test-Path $configDestPath)) {
-    Copy-Item -Path $sourceConfigPath -Destination $configDestPath -Force
   }
 }
 
@@ -49,7 +43,7 @@ Write-Host "PowerShell path: $pwsh"
 Write-Host "Runner path: $runnerPath"
 
 # Load and customize the XML template
-$templatePath = Join-Path $PSScriptRoot "task-template.xml"
+$templatePath = Join-Path (Split-Path -Parent $PSScriptRoot) "task-template.xml"
 if (-not (Test-Path $templatePath)) {
     throw "XML template not found: $templatePath"
 }
