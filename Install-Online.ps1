@@ -29,7 +29,7 @@ Write-Host "Creating directory '$installDir'..."
 
 
 # --- 2. Download from GitHub ---
-$zipUrl = "https://github.com/$githubRepo/archive/refs/tags/0.5.0.zip"
+$zipUrl = "https://github.com/$githubRepo/archive/refs/heads/main.zip"
 $zipPath = Join-Path $env:TEMP "IdleHibernateUnlessAwake-main.zip"
 
 Write-Host "Downloading latest version from GitHub..." -ForegroundColor Green
