@@ -38,20 +38,35 @@ if (-not (Test-Path $runnerPath)) {
 $pwsh = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
 $command = "`"$pwsh`" -NoProfile -ExecutionPolicy Bypass -File `"$runnerPath`""
 
-$me = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+# Obtenir le nom d'utilisateur au format correct pour schtasks (SYSTEM\Username)
+$userName = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+if ($userName -notlike "*\*") {
+    $computerName = $env:COMPUTERNAME
+    $userName = "$computerName\$userName"
+}
+
+Write-Host "Creating task as user: $userName"
+
 $schtasksArgs = @(
     "/create",
-    "/tn", "`"$TaskName`"",
+    "/tn", $TaskName,
     "/tr", $command,
     "/sc", "ONIDLE",
     "/i", "15",
-    "/ru", "`"$me`"",
+    "/ru", $userName,
     "/rl", "HIGHEST",
     "/f"
 )
-$result = & schtasks.exe $schtasksArgs
-if ($LASTEXITCODE -ne 0) {
-    throw "Failed to create scheduled task: $result"
+
+# Exécuter schtasks et capturer la sortie complète
+$output = & schtasks.exe $schtasksArgs 2>&1
+$success = $LASTEXITCODE -eq 0
+
+# Afficher la sortie pour le débogage
+$output | ForEach-Object { Write-Host $_ }
+
+if (-not $success) {
+    throw "Failed to create scheduled task. Exit code: $LASTEXITCODE"
 }
 
 Write-Host "Task '$TaskName' installed."
