@@ -45,58 +45,18 @@ if (-not (Test-Path $runnerPath)) {
 
 # Action: launch PowerShell on runner.ps1
 $pwsh = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
+Write-Host "PowerShell path: $pwsh"
+Write-Host "Runner path: $runnerPath"
 
-# Construction de la commande avec échappement correct
-$execCommand = "`"$pwsh`" -NoProfile -ExecutionPolicy Bypass -File `"$runnerPath`""
+# Charger et personnaliser le template XML
+$templatePath = Join-Path $PSScriptRoot "task-template.xml"
+if (-not (Test-Path $templatePath)) {
+    throw "Template XML introuvable : $templatePath"
+}
 
-Write-Host "Command that will be executed: $execCommand" -ForegroundColor Cyan
-
-# Créer un objet XML pour la tâche planifiée
-$taskXml = @"
-<?xml version="1.0" encoding="UTF-16"?>
-<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
-  <RegistrationInfo>
-    <Description>Hibernate le PC après une période d'inactivité, sauf si PowerToys Awake est actif</Description>
-  </RegistrationInfo>
-  <Triggers>
-    <IdleTrigger>
-      <Enabled>true</Enabled>
-    </IdleTrigger>
-  </Triggers>
-  <Principals>
-    <Principal id="Author">
-      <LogonType>InteractiveToken</LogonType>
-      <RunLevel>HighestAvailable</RunLevel>
-    </Principal>
-  </Principals>
-  <Settings>
-    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
-    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
-    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
-    <AllowHardTerminate>true</AllowHardTerminate>
-    <StartWhenAvailable>false</StartWhenAvailable>
-    <RunOnlyIfIdle>true</RunOnlyIfIdle>
-    <IdleSettings>
-      <Duration>PT15M</Duration>
-      <WaitTimeout>PT1H</WaitTimeout>
-      <StopOnIdleEnd>true</StopOnIdleEnd>
-    </IdleSettings>
-    <AllowStartOnDemand>true</AllowStartOnDemand>
-    <Enabled>true</Enabled>
-    <Hidden>false</Hidden>
-    <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
-    <WakeToRun>false</WakeToRun>
-    <ExecutionTimeLimit>PT0S</ExecutionTimeLimit>
-    <Priority>7</Priority>
-  </Settings>
-  <Actions Context="Author">
-    <Exec>
-      <Command>$pwsh</Command>
-      <Arguments>-NoProfile -ExecutionPolicy Bypass -File "$runnerPath"</Arguments>
-    </Exec>
-  </Actions>
-</Task>
-"@
+$taskXml = Get-Content -Path $templatePath -Raw -Encoding Unicode
+$taskXml = $taskXml.Replace("__POWERSHELL_PATH__", $pwsh)
+$taskXml = $taskXml.Replace("__RUNNER_PATH__", $runnerPath)
 
 # Sauvegarder la définition XML dans un fichier temporaire
 $xmlPath = [System.IO.Path]::GetTempFileName()
