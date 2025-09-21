@@ -2,6 +2,15 @@ param(
   [string]$TaskName = "IdleHibernateUnlessAwake"
 )
 
+# Vérifier les privilèges d'administrateur
+$isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+if (-not $isAdmin) {
+    Write-Host "Élévation des privilèges requise. Redémarrage en tant qu'administrateur..." -ForegroundColor Yellow
+    $arguments = "& '" + $MyInvocation.MyCommand.Definition + "'"
+    Start-Process powershell -Verb RunAs -ArgumentList $arguments
+    exit
+}
+
 # Détecter le dossier d'installation
 $installDir = Join-Path $env:LOCALAPPDATA "Programs\IdleHibernateUnlessAwake"
 $installSrcDir = Join-Path $installDir "src"
