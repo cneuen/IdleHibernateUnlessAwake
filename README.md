@@ -1,3 +1,5 @@
+![Platform](https://img.shields.io/badge/platform-Windows%2011-blue?logo=windows)
+
 # IdleHibernateUnlessAwake
 
 Forces Windows to hibernate (`shutdown /h /f`) after a configurable period of idle time, **unless PowerToys Awake is ON**.
@@ -13,6 +15,12 @@ This script is useful in cases where the PC only supports S0 sleep (Modern Stand
 - It then checks if PowerToys Awake is active by looking at the registry and JSON settings file.
 - If Awake is OFF, it initiates hibernation.
 - If Awake is ON, it does nothing.
+
+## Compatibility
+
+- ✅ Windows 11 (tested)
+- ⚠️ Windows 10 (may work but not tested)
+- ❌ Linux / macOS (not supported)
 
 ## Requirements
 
