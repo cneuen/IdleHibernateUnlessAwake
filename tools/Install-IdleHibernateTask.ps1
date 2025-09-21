@@ -1,6 +1,7 @@
 param(
   [string]$TaskName = "IdleHibernateUnlessAwake",
-  [int]$DelaySeconds = 900  # 15 minutes d'attente dans runner.ps1
+  [int]$SleepSeconds = 900,
+  [switch]$EnableLogging = $false
 )
 
 $repoRoot   = Split-Path -Parent $PSCommandPath
@@ -13,7 +14,10 @@ if (-not (Test-Path $runnerPath)) {
 
 # Action: lance PowerShell sur runner.ps1
 $pwsh = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
-$arg  = "-NoProfile -ExecutionPolicy Bypass -File `"$runnerPath`""
+$arg  = "-NoProfile -ExecutionPolicy Bypass -File `"$runnerPath`" -SleepSeconds $SleepSeconds"
+if ($EnableLogging) {
+    $arg += " -EnableLogging"
+}
 
 $action = New-ScheduledTaskAction -Execute $pwsh -Argument $arg
 

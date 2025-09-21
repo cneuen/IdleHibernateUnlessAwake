@@ -1,5 +1,6 @@
 param (
-    [switch]$EnableLogging = $false
+    [switch]$EnableLogging = $false,
+    [int]$SleepSeconds = 900
 )
 
 # Hibernate si Awake est OFF après 15 minutes d'inactivité
@@ -14,9 +15,9 @@ function Write-Log($m) {
 Write-Log "Task started; user=$(whoami)"
 
 try {
-    # Attendre 15 minutes (900 secondes)
-    Start-Sleep -Seconds 900
-    Write-Log "After 15 min wait"
+    # Attendre
+    Start-Sleep -Seconds $SleepSeconds
+    Write-Log "After $SleepSeconds sec wait"
 
     $awake = $false
     $mode  = $null
