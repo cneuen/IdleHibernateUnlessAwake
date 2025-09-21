@@ -45,37 +45,82 @@ if (-not (Test-Path $runnerPath)) {
 
 # Action: launch PowerShell on runner.ps1
 $pwsh = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
-$command = "`"$pwsh`" -NoProfile -ExecutionPolicy Bypass -File `"$runnerPath`""
 
-# Obtenir le nom d'utilisateur au format correct pour schtasks (SYSTEM\Username)
-$userName = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
-if ($userName -notlike "*\*") {
-    $computerName = $env:COMPUTERNAME
-    $userName = "$computerName\$userName"
+# Construction de la commande avec échappement correct
+$execCommand = "`"$pwsh`" -NoProfile -ExecutionPolicy Bypass -File `"$runnerPath`""
+
+Write-Host "Command that will be executed: $execCommand" -ForegroundColor Cyan
+
+# Créer un objet XML pour la tâche planifiée
+$taskXml = @"
+<?xml version="1.0" encoding="UTF-16"?>
+<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+  <RegistrationInfo>
+    <Description>Hibernate le PC après une période d'inactivité, sauf si PowerToys Awake est actif</Description>
+  </RegistrationInfo>
+  <Triggers>
+    <IdleTrigger>
+      <Enabled>true</Enabled>
+    </IdleTrigger>
+  </Triggers>
+  <Principals>
+    <Principal id="Author">
+      <LogonType>InteractiveToken</LogonType>
+      <RunLevel>HighestAvailable</RunLevel>
+    </Principal>
+  </Principals>
+  <Settings>
+    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
+    <AllowHardTerminate>true</AllowHardTerminate>
+    <StartWhenAvailable>false</StartWhenAvailable>
+    <RunOnlyIfIdle>true</RunOnlyIfIdle>
+    <IdleSettings>
+      <Duration>PT15M</Duration>
+      <WaitTimeout>PT1H</WaitTimeout>
+      <StopOnIdleEnd>true</StopOnIdleEnd>
+    </IdleSettings>
+    <AllowStartOnDemand>true</AllowStartOnDemand>
+    <Enabled>true</Enabled>
+    <Hidden>false</Hidden>
+    <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
+    <WakeToRun>false</WakeToRun>
+    <ExecutionTimeLimit>PT0S</ExecutionTimeLimit>
+    <Priority>7</Priority>
+  </Settings>
+  <Actions Context="Author">
+    <Exec>
+      <Command>$pwsh</Command>
+      <Arguments>-NoProfile -ExecutionPolicy Bypass -File "$runnerPath"</Arguments>
+    </Exec>
+  </Actions>
+</Task>
+"@
+
+# Sauvegarder la définition XML dans un fichier temporaire
+$xmlPath = [System.IO.Path]::GetTempFileName()
+$taskXml | Out-File -FilePath $xmlPath -Encoding Unicode
+
+Write-Host "Creating scheduled task with XML definition..." -ForegroundColor Yellow
+
+try {
+    # Utiliser schtasks avec le fichier XML
+    $output = & schtasks.exe /create /tn $TaskName /xml $xmlPath /f 2>&1
+    $success = $LASTEXITCODE -eq 0
+
+    # Afficher la sortie pour le débogage
+    $output | ForEach-Object { Write-Host $_ }
+
+    if (-not $success) {
+        throw "Failed to create scheduled task. Exit code: $LASTEXITCODE"
+    }
 }
-
-Write-Host "Creating task as user: $userName"
-
-$schtasksArgs = @(
-    "/create",
-    "/tn", $TaskName,
-    "/tr", $command,
-    "/sc", "ONIDLE",
-    "/i", "15",
-    "/ru", $userName,
-    "/rl", "HIGHEST",
-    "/f"
-)
-
-# Exécuter schtasks et capturer la sortie complète
-$output = & schtasks.exe $schtasksArgs 2>&1
-$success = $LASTEXITCODE -eq 0
-
-# Afficher la sortie pour le débogage
-$output | ForEach-Object { Write-Host $_ }
-
-if (-not $success) {
-    throw "Failed to create scheduled task. Exit code: $LASTEXITCODE"
+finally {
+    # Nettoyer le fichier temporaire
+    if (Test-Path $xmlPath) {
+        Remove-Item -Path $xmlPath -Force
+    }
 }
 
 Write-Host "Task '$TaskName' installed."
