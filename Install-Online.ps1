@@ -33,7 +33,7 @@ if ($pscmdlet.ShouldProcess($installDir, "New-Item -ItemType Directory")) {
 
 
 # --- 2. Téléchargement depuis GitHub ---
-$zipUrl = "https://github.com/$githubRepo/archive/refs/heads/main.zip"
+$zipUrl = "https://github.com/$githubRepo/archive/refs/tags/0.5.0.zip"
 $zipPath = Join-Path $env:TEMP "IdleHibernateUnlessAwake-main.zip"
 
 Write-Host "Téléchargement de la dernière version depuis GitHub..." -ForegroundColor Green
