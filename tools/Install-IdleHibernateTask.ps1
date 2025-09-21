@@ -36,11 +36,23 @@ if (-not (Test-Path $runnerPath)) {
 
 # Action: launch PowerShell on runner.ps1
 $pwsh = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
-$arg  = "-NoProfile -ExecutionPolicy Bypass -File `"$runnerPath`""
+$command = "`"$pwsh`" -NoProfile -ExecutionPolicy Bypass -File `"$runnerPath`""
 
 $me = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
-$schtasksCommand = "schtasks /create /tn `"$TaskName`" /tr `"$pwsh $arg`" /sc ONIDLE /i 15 /ru `"$me`" /rl HIGHEST /f"
-Invoke-Expression $schtasksCommand
+$schtasksArgs = @(
+    "/create",
+    "/tn", "`"$TaskName`"",
+    "/tr", $command,
+    "/sc", "ONIDLE",
+    "/i", "15",
+    "/ru", "`"$me`"",
+    "/rl", "HIGHEST",
+    "/f"
+)
+$result = & schtasks.exe $schtasksArgs
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to create scheduled task: $result"
+}
 
 Write-Host "Task '$TaskName' installed."
 Write-Host "Action: $pwsh $arg"
