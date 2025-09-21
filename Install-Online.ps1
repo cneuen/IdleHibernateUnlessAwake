@@ -15,12 +15,7 @@ if ([string]::IsNullOrWhiteSpace($installDir)) {
 }
 
 if (Test-Path $installDir) {
-    $overwrite = Read-Host "The directory '$installDir' already exists. Do you want to replace it? (y/n)"
-    if ($overwrite -ne 'o') {
-        Write-Host "Installation cancelled."
-        return
-    }
-    Write-Host "Cleaning existing directory..."
+    Write-Host "The directory '$installDir' already exists. Deleting it..."
     Remove-Item -Path $installDir -Recurse -Force
 }
 
