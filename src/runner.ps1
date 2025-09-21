@@ -29,7 +29,11 @@ $SleepSeconds = $finalConfig.SleepSeconds
 $EnableLogging = $finalConfig.EnableLogging
 
 # Hibernate si Awake est OFF après 15 minutes d'inactivité
-$log = Join-Path $env:TEMP 'IdleAwakeProbe.txt'
+$logDir = Join-Path $env:LOCALAPPDATA 'IdleHibernateUnlessAwake'
+if (-not (Test-Path $logDir)) {
+    New-Item -Path $logDir -ItemType Directory | Out-Null
+}
+$log = Join-Path $logDir 'IdleAwakeProbe.txt'
 function Write-Log($m) {
     if ($EnableLogging) {
         $ts = Get-Date -Format o

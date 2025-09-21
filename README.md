@@ -2,6 +2,10 @@
 
 Forces Windows to hibernate (`shutdown /h /f`) after a configurable period of idle time, **unless PowerToys Awake is ON**.
 
+## Context
+
+This script is useful in cases where the PC only supports S0 sleep (Modern Standby) and not S3 (which is sometimes disabled in the BIOS).
+
 ## How it works
 
 - A scheduled task triggers when the system is idle.
@@ -15,6 +19,10 @@ Forces Windows to hibernate (`shutdown /h /f`) after a configurable period of id
 - Windows 10/11
 - PowerShell 5.1+ (or 7)
 - PowerToys (optional, but the main feature is to check if it is running)
+- Hibernation must be enabled. You can enable it by running the following command in an elevated command prompt:
+  ```cmd
+  powercfg /hibernate on
+  ```
 
 ## Installation
 
@@ -44,7 +52,7 @@ You can configure the behavior of `IdleHibernateUnlessAwake` by editing the `src
 ```
 
 - `SleepSeconds`: The number of seconds to wait in an idle state before hibernating. Default is 900 (15 minutes).
-- `EnableLogging`: Set to `true` to enable logging to `%TEMP%\IdleAwake.txt`.
+- `EnableLogging`: Set to `true` to enable logging to `%LOCALAPPDATA%\IdleHibernateUnlessAwake\IdleAwakeProbe.txt`.
 
 ### Command-line parameters
 
