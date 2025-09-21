@@ -37,7 +37,7 @@
   <Actions Context="Author">
     <Exec>
       <Command>__POWERSHELL_PATH__</Command>
-      <Arguments>-NoProfile -ExecutionPolicy Bypass -File "__RUNNER_PATH__" -EnableLogging -SleepSeconds 900</Arguments>
+      <Arguments>-NoProfile -ExecutionPolicy Bypass -File "__RUNNER_PATH__"__ENABLE_LOGGING__ -SleepSeconds __SLEEP_SECONDS__</Arguments>
     </Exec>
   </Actions>
 </Task>

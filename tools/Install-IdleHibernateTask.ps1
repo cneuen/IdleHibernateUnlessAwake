@@ -1,5 +1,7 @@
 param(
-  [string]$TaskName = "IdleHibernateUnlessAwake"
+  [string]$TaskName = "IdleHibernateUnlessAwake",
+  [int]$SleepSeconds = 900,
+  [switch]$EnableLogging
 )
 
 # Vérifier les privilèges d'administrateur
@@ -51,6 +53,8 @@ if (-not (Test-Path $templatePath)) {
 $taskXml = Get-Content -Path $templatePath -Raw -Encoding Unicode
 $taskXml = $taskXml.Replace("__POWERSHELL_PATH__", $pwsh)
 $taskXml = $taskXml.Replace("__RUNNER_PATH__", $runnerPath)
+$taskXml = $taskXml.Replace("__SLEEP_SECONDS__", $SleepSeconds)
+$taskXml = $taskXml.Replace("__ENABLE_LOGGING__", $(if ($EnableLogging) { " -EnableLogging" } else { "" }))
 
 # Save the XML definition to a temporary file
 $xmlPath = [System.IO.Path]::GetTempFileName()

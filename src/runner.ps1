@@ -1,6 +1,6 @@
 param (
     [int]$SleepSeconds = 900,
-    [switch]$EnableLogging
+    [switch]$EnableLogging = $false
 )
 
 # Hibernate si Awake est OFF après 15 minutes d'inactivité
