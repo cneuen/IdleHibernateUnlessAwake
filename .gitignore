@@ -1,0 +1,17 @@
+# VS Code
+.vscode/
+.history/
+
+# Logs & temporaires
+*.log
+*.tmp
+*.bak
+
+# Build/artefacts
+bin/
+out/
+dist/
+
+# Windows
+Thumbs.db
+Desktop.ini
