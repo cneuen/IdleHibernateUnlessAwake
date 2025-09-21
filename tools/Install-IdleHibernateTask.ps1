@@ -1,7 +1,5 @@
 param(
-  [string]$TaskName = "IdleHibernateUnlessAwake",
-  [int]$SleepSeconds = 900,
-  [switch]$EnableLogging = $false
+  [string]$TaskName = "IdleHibernateUnlessAwake"
 )
 
 $repoRoot   = Split-Path -Parent $PSCommandPath
@@ -14,10 +12,7 @@ if (-not (Test-Path $runnerPath)) {
 
 # Action: lance PowerShell sur runner.ps1
 $pwsh = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
-$arg  = "-NoProfile -ExecutionPolicy Bypass -File `"$runnerPath`" -SleepSeconds $SleepSeconds"
-if ($EnableLogging) {
-    $arg += " -EnableLogging"
-}
+$arg  = "-NoProfile -ExecutionPolicy Bypass -File `"$runnerPath`""
 
 $action = New-ScheduledTaskAction -Execute $pwsh -Argument $arg
 
@@ -39,3 +34,4 @@ Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger $trigger -Se
 
 Write-Host "Tâche '$TaskName' installée."
 Write-Host "Action: $pwsh $arg"
+Write-Host "Pour personnaliser les paramètres (SleepSeconds, EnableLogging), modifiez le fichier src/config.json."
