@@ -21,15 +21,11 @@ if (Test-Path $installDir) {
         return
     }
     Write-Host "Nettoyage du répertoire existant..."
-    if ($pscmdlet.ShouldProcess($installDir, "Remove-Item -Recurse -Force")) {
-        Remove-Item -Path $installDir -Recurse -Force
-    }
+    Remove-Item -Path $installDir -Recurse -Force
 }
 
 Write-Host "Création du répertoire '$installDir'..."
-if ($pscmdlet.ShouldProcess($installDir, "New-Item -ItemType Directory")) {
     New-Item -Path $installDir -ItemType Directory -Force | Out-Null
-}
 
 
 # --- 2. Téléchargement depuis GitHub ---
@@ -37,17 +33,13 @@ $zipUrl = "https://github.com/$githubRepo/archive/refs/tags/0.5.0.zip"
 $zipPath = Join-Path $env:TEMP "IdleHibernateUnlessAwake-main.zip"
 
 Write-Host "Téléchargement de la dernière version depuis GitHub..." -ForegroundColor Green
-if ($pscmdlet.ShouldProcess($zipUrl, "Invoke-WebRequest -OutFile $zipPath")) {
     Invoke-WebRequest -Uri $zipUrl -OutFile $zipPath -UseBasicParsing
-}
 
 
 # --- 3. Décompression ---
 Write-Host "Extraction des fichiers..."
 # Les fichiers sont dans un sous-dossier (ex: IdleHibernateUnlessAwake-main)
-if ($pscmdlet.ShouldProcess($zipPath, "Expand-Archive -DestinationPath $installDir -Force")) {
     Expand-Archive -Path $zipPath -DestinationPath $installDir -Force
-}
 
 # Déplacer les fichiers du sous-dossier vers la racine
 $unzippedSubFolder = Get-ChildItem -Path $installDir | Where-Object { $_.PSIsContainer } | Select-Object -First 1
@@ -84,9 +76,7 @@ $config = @{
 
 $configPath = Join-Path $installDir "src\config.json"
 Write-Host "Création du fichier de configuration sur '$configPath'..."
-if ($pscmdlet.ShouldProcess($configPath, "Set-Content")) {
     $config | ConvertTo-Json | Set-Content -Path $configPath -Encoding UTF8
-}
 
 
 # --- 5. Installation de la tâche planifiée ---
@@ -99,12 +89,10 @@ if (-not (Test-Path $installTaskScript)) {
 }
 
 # Exécution du script d'installation
-if ($pscmdlet.ShouldProcess($installTaskScript, "Exécution du script")) {
     # On se déplace dans le répertoire pour que les chemins relatifs du script fonctionnent
     Push-Location $installDir
     & $installTaskScript
     Pop-Location
-}
 
 Write-Host "`nInstallation terminée avec succès !" -ForegroundColor Green
 Write-Host "Le script est installé dans '$installDir'."
