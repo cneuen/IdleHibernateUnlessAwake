@@ -37,7 +37,7 @@ This script is useful in cases where the PC only supports S0 sleep (Modern Stand
 Run the installer directly from GitHub. It pulls the latest runner and XML template on demand, so no additional files are required locally.
 
 ```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; iex "& { $(Invoke-WebRequest 'https://raw.githubusercontent.com/cneuen/IdleHibernateUnlessAwake/main/tools/Install-IdleHibernateTask.ps1').Content } -Action Install -SleepSeconds 900"
+Set-ExecutionPolicy Bypass -Scope Process -Force; $script = Invoke-WebRequest 'https://raw.githubusercontent.com/cneuen/IdleHibernateUnlessAwake/main/tools/Install-IdleHibernateTask.ps1' | Select-Object -ExpandProperty Content; iex "& { $script } -Action Install -SleepSeconds 900"
 ```
 
 Add optional switches like `-EnableLogging` or `-RunElevated` to tweak the behavior before the task is created.
@@ -81,5 +81,6 @@ Reuse the script to remove the scheduled task. Include `-RemoveFiles` to delete 
 ### 0.1.0
 - Initial release.
 - Added `-EnableLogging` parameter for debugging.
+
 
 
