@@ -67,7 +67,6 @@ function Invoke-Schtasks {
     $stderr = $process.StandardError.ReadToEnd()
     $process.WaitForExit()
 
-    if ($stdout) { Write-Host $stdout.Trim() }
     if ($stderr) { Write-Host "Warning: $($stderr.Trim())" -ForegroundColor Yellow }
 
     if ($process.ExitCode -ne 0) {
