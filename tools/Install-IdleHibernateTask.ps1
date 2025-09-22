@@ -63,14 +63,15 @@ function Invoke-Schtasks {
     $process.StartInfo = $psi
 
     $process.Start() | Out-Null
-    $stdout = $process.StandardOutput.ReadToEnd()
     $stderr = $process.StandardError.ReadToEnd()
+    $output = $process.StandardOutput.ReadToEnd()
     $process.WaitForExit()
 
     if ($stderr) { Write-Host "Warning: $($stderr.Trim())" -ForegroundColor Yellow }
+    if ($output) { Write-Host $output }
 
     if ($process.ExitCode -ne 0) {
-        throw "schtasks exited with code $($process.ExitCode)"
+        throw "schtasks exited with code $($process.ExitCode)`nOutput: $output`nError: $stderr"
     }
 }
 
@@ -99,6 +100,7 @@ try {
                 throw "Unable to locate powershell.exe at $commandPath"
             }
 
+            # Build runner arguments with logging and sleep settings
             $runnerArguments = "-NoProfile -ExecutionPolicy Bypass -File `"$runnerInstallPath`""
             if ($EnableLogging) {
                 $runnerArguments += ' -EnableLogging'
@@ -116,6 +118,10 @@ try {
 
             $tempXml = Join-Path ([System.IO.Path]::GetTempPath()) ("IdleHibernateTask_{0}.xml" -f [guid]::NewGuid())
             try {
+                # Validate XML before using it
+                [xml]$null = $xmlContent
+                
+                # Save and use the validated XML
                 $xmlContent | Out-File -FilePath $tempXml -Encoding Unicode
                 Write-Host "Installing scheduled task '$TaskName'" -ForegroundColor Yellow
                 Invoke-Schtasks "/create /tn `"$TaskName`" /xml `"$tempXml`" /f"
