@@ -18,9 +18,9 @@ This script is useful in cases where the PC only supports S0 sleep (Modern Stand
 
 ## Compatibility
 
-- ✅ Windows 11 (tested)
-- ⚠️ Windows 10 (may work but not tested)
-- ❌ Linux / macOS (not supported)
+- Windows 11 (tested)
+- Windows 10 (may work but not tested)
+- Linux / macOS (not supported)
 
 ## Requirements
 
@@ -32,63 +32,44 @@ This script is useful in cases where the PC only supports S0 sleep (Modern Stand
   powercfg /hibernate on
   ```
 
-## Easy Installation (Online)
+## Online Installation
 
-A single command to download, configure, and install everything.
-
-Open a PowerShell terminal and run the following command. It will guide you through the installation.
+Run the installer directly from GitHub. It pulls the latest runner and XML template on demand, so no additional files are required locally.
 
 ```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/cneuen/IdleHibernateUnlessAwake/main/Install-Online.ps1'))
+Set-ExecutionPolicy Bypass -Scope Process -Force; iex "& { $(Invoke-WebRequest 'https://raw.githubusercontent.com/cneuen/IdleHibernateUnlessAwake/main/tools/Install-IdleHibernateTask.ps1').Content } -Action Install -SleepSeconds 900"
 ```
 
-This command will:
-1.  Temporarily allow script execution for the current process.
-2.  Download and run the `Install-Online.ps1` script from GitHub.
-3.  The script will then prompt you for the installation directory and configuration settings.
+Add `-EnableLogging` (or any other parameter shown below) to the end of the command to tweak the behavior before the task is created.
 
-## Manual Installation
+## Local Installation
 
-If you already have the repository locally, install the scheduled task with:
+If you already cloned the repository, invoke the same script from disk:
 
 ```powershell
 .\tools\Install-IdleHibernateTask.ps1 -SleepSeconds 900 -EnableLogging
 ```
 
-The `-Action` parameter defaults to `Install`, so you can omit it. Tweak the optional switches to match your needs.
+`-Action` defaults to `Install`, so you can omit it during local installs.
 
-## Manual Uninstallation
+## Uninstallation
 
-To remove the scheduled task, reuse the same script:
+Reuse the script to remove the scheduled task. Include `-RemoveFiles` to delete the copied runner from `%LOCALAPPDATA%\Programs\IdleHibernateUnlessAwake`.
 
 ```powershell
 .\tools\Install-IdleHibernateTask.ps1 -Action Uninstall -RemoveFiles
 ```
 
-Drop `-RemoveFiles` if you prefer to keep the copied runner under `%LOCALAPPDATA%\Programs\IdleHibernateUnlessAwake`.
-
 ## Configuration
 
-You can configure the behavior of `IdleHibernateUnlessAwake` by editing the `src/config.json` file.
+`tools/Install-IdleHibernateTask.ps1` accepts:
 
-```json
-{
-  "SleepSeconds": 900,
-  "EnableLogging": false
-}
-```
+- `-SleepSeconds <int>` — idle wait time before hibernation (default: 900 seconds).
+- `-EnableLogging` — forward task execution details to `%LOCALAPPDATA%\IdleHibernateUnlessAwake\IdleAwakeProbe.txt`.
+- `-TaskName <string>` — customise the scheduled-task identifier.
+- `-RemoveFiles` — optional cleanup toggle for the uninstall action.
 
-- `SleepSeconds`: The number of seconds to wait in an idle state before hibernating. Default is 900 (15 minutes).
-- `EnableLogging`: Set to `true` to enable logging to `%LOCALAPPDATA%\IdleHibernateUnlessAwake\IdleAwakeProbe.txt`.
-
-### Command-line parameters
-
-You can also override the configuration settings by passing command-line parameters to `runner.ps1`.
-
-- `-SleepSeconds <seconds>`: Overrides the `SleepSeconds` setting.
-- `-EnableLogging`: Overrides the `EnableLogging` setting to `true`.
-
-These parameters can be useful for testing or for creating custom scheduled tasks.
+`src/runner.ps1` also exposes `-SleepSeconds` and `-EnableLogging` for ad-hoc testing should you want to run it manually.
 
 ## Changelog
 
@@ -99,3 +80,4 @@ These parameters can be useful for testing or for creating custom scheduled task
 ### 0.1.0
 - Initial release.
 - Added `-EnableLogging` parameter for debugging.
+
