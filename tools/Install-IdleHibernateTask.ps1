@@ -1,77 +1,115 @@
+[CmdletBinding()]
 param(
-  [string]$TaskName = "IdleHibernateUnlessAwake",
-  [int]$SleepSeconds = 900,
-  [switch]$EnableLogging
+    [ValidateSet('Install','Uninstall')]
+    [string]$Action = 'Install',
+    [string]$TaskName = 'IdleHibernateUnlessAwake',
+    [int]$SleepSeconds = 900,
+    [switch]$EnableLogging,
+    [switch]$RemoveFiles
 )
 
-# Detect installation directory
-$installDir = Join-Path $env:LOCALAPPDATA "Programs\IdleHibernateUnlessAwake"
-$installSrcDir = Join-Path $installDir "src"
-$runnerPath = Join-Path $installSrcDir "runner.ps1"
+$ErrorActionPreference = 'Stop'
 
-# If runner.ps1 doesn't exist in the installation directory, try to copy it from the repo
-if (-not (Test-Path $runnerPath)) {
-  $repoRoot = Split-Path -Parent $PSCommandPath
-  $repoRoot = Split-Path -Parent $repoRoot   # Go up from tools\ to root folder
-  $sourceRunnerPath = Join-Path $repoRoot "src\runner.ps1"
+$scriptDir = Split-Path -Parent $PSCommandPath
+$projectRoot = Split-Path -Parent $scriptDir
+$templatePath = Join-Path $projectRoot 'task-template.xml'
+$runnerSourcePath = Join-Path $projectRoot 'src\runner.ps1'
 
-  if (-not (Test-Path $sourceRunnerPath)) {
-    throw "runner.ps1 not found: $sourceRunnerPath"
-  }
+$installRoot = Join-Path $env:LOCALAPPDATA 'Programs\IdleHibernateUnlessAwake'
+$installSrcDir = Join-Path $installRoot 'src'
+$runnerInstallPath = Join-Path $installSrcDir 'runner.ps1'
 
-  # Create installation directory if needed
-  if (-not (Test-Path $installSrcDir)) {
-    New-Item -Path $installSrcDir -ItemType Directory -Force | Out-Null
-  }
+function Invoke-Schtasks {
+    param([string]$Arguments)
 
-  # Copy runner.ps1 if it doesn't already exist
-  if (-not (Test-Path $runnerPath)) {
-    Copy-Item -Path $sourceRunnerPath -Destination $runnerPath -Force
-  }
-}
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = 'schtasks.exe'
+    $psi.Arguments = $Arguments
+    $psi.UseShellExecute = $false
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    $psi.StandardOutputEncoding = [System.Text.Encoding]::UTF8
+    $psi.StandardErrorEncoding = [System.Text.Encoding]::UTF8
 
-# Action: launch PowerShell on runner.ps1
-$pwsh = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
-Write-Host "PowerShell path: $pwsh"
-Write-Host "Runner path: $runnerPath"
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $psi
 
-# Load and customize the XML template
-$templatePath = Join-Path (Split-Path -Parent $PSScriptRoot) "task-template.xml"
-if (-not (Test-Path $templatePath)) {
-    throw "XML template not found: $templatePath"
-}
+    $process.Start() | Out-Null
+    $stdout = $process.StandardOutput.ReadToEnd()
+    $stderr = $process.StandardError.ReadToEnd()
+    $process.WaitForExit()
 
-$taskXml = Get-Content -Path $templatePath -Raw -Encoding Unicode
-$taskXml = $taskXml.Replace("__POWERSHELL_PATH__", $pwsh)
-$taskXml = $taskXml.Replace("__RUNNER_PATH__", $runnerPath)
-$taskXml = $taskXml.Replace("__SLEEP_SECONDS__", $SleepSeconds)
-$taskXml = $taskXml.Replace("__ENABLE_LOGGING__", $(if ($EnableLogging) { " -EnableLogging" } else { "" }))
+    if ($stdout) { Write-Host $stdout.Trim() }
+    if ($stderr) { Write-Warning $stderr.Trim() }
 
-# Save the XML definition to a temporary file
-$xmlPath = [System.IO.Path]::GetTempFileName()
-$taskXml | Out-File -FilePath $xmlPath -Encoding Unicode
-
-Write-Host "Creating scheduled task with XML definition..." -ForegroundColor Yellow
-
-try {
-    # Use schtasks with the XML file
-    $output = & schtasks.exe /create /tn $TaskName /xml $xmlPath /f 2>&1
-    $success = $LASTEXITCODE -eq 0
-
-    # Display output for debugging
-    $output | ForEach-Object { Write-Host $_ }
-
-    if (-not $success) {
-        throw "Failed to create scheduled task. Exit code: $LASTEXITCODE"
-    }
-}
-finally {
-    # Clean up temporary file
-    if (Test-Path $xmlPath) {
-        Remove-Item -Path $xmlPath -Force
+    if ($process.ExitCode -ne 0) {
+        throw "schtasks exited with code $($process.ExitCode)"
     }
 }
 
-Write-Host "Task '$TaskName' installed."
-Write-Host "Action: $pwsh $arg"
-Write-Host "To customize settings (SleepSeconds, EnableLogging), modify src/config.json."
+switch ($Action) {
+    'Install' {
+        if ($SleepSeconds -lt 1) {
+            throw 'SleepSeconds must be a positive integer.'
+        }
+
+        if (-not (Test-Path $runnerSourcePath)) {
+            throw "runner.ps1 not found at $runnerSourcePath"
+        }
+
+        if (-not (Test-Path $templatePath)) {
+            throw "Task XML template not found at $templatePath"
+        }
+
+        if (-not (Test-Path $installSrcDir)) {
+            New-Item -Path $installSrcDir -ItemType Directory -Force | Out-Null
+        }
+
+        Copy-Item -Path $runnerSourcePath -Destination $runnerInstallPath -Force
+
+        $commandPath = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+        if (-not (Test-Path $commandPath)) {
+            throw "Unable to locate powershell.exe at $commandPath"
+        }
+
+        $runnerArguments = "-NoProfile -ExecutionPolicy Bypass -File `"$runnerInstallPath`""
+        if ($EnableLogging) {
+            $runnerArguments += ' -EnableLogging'
+        }
+        $runnerArguments += " -SleepSeconds $SleepSeconds"
+
+        $xmlTemplate = Get-Content -Path $templatePath -Raw -Encoding Unicode
+        $commandEscaped = [System.Security.SecurityElement]::Escape($commandPath)
+        $argumentsEscaped = [System.Security.SecurityElement]::Escape($runnerArguments)
+        $xmlContent = $xmlTemplate.Replace('__COMMAND__', $commandEscaped).Replace('__ARGUMENTS__', $argumentsEscaped)
+
+        $tempXml = Join-Path ([System.IO.Path]::GetTempPath()) ("IdleHibernateTask_{0}.xml" -f [guid]::NewGuid())
+        try {
+            $xmlContent | Out-File -FilePath $tempXml -Encoding Unicode
+            Write-Host "Installing scheduled task '$TaskName'" -ForegroundColor Yellow
+            Invoke-Schtasks "/create /tn `"$TaskName`" /xml `"$tempXml`" /f"
+            Write-Host "Task '$TaskName' installed." -ForegroundColor Green
+        }
+        finally {
+            if (Test-Path $tempXml) {
+                Remove-Item -Path $tempXml -Force
+            }
+        }
+    }
+
+    'Uninstall' {
+        $task = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+        if ($null -ne $task) {
+            Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
+            Write-Host "Task '$TaskName' removed." -ForegroundColor Green
+        }
+        else {
+            Write-Host "Task '$TaskName' not found." -ForegroundColor Yellow
+        }
+
+        if ($RemoveFiles -and (Test-Path $installRoot)) {
+            Remove-Item -Path $installRoot -Recurse -Force
+            Write-Host "Removed install directory $installRoot." -ForegroundColor Yellow
+        }
+    }
+}

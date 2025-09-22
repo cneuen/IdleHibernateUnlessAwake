@@ -49,19 +49,23 @@ This command will:
 
 ## Manual Installation
 
-If you have already downloaded the files, you can install the scheduled task by running the following command in PowerShell:
+If you already have the repository locally, install the scheduled task with:
 
 ```powershell
-.\tools\Install-IdleHibernateTask.ps1
+.\tools\Install-IdleHibernateTask.ps1 -SleepSeconds 900 -EnableLogging
 ```
+
+The `-Action` parameter defaults to `Install`, so you can omit it. Tweak the optional switches to match your needs.
 
 ## Manual Uninstallation
 
-To uninstall the scheduled task, run:
+To remove the scheduled task, reuse the same script:
 
 ```powershell
-.\tools\Uninstall-IdleHibernateTask.ps1
+.\tools\Install-IdleHibernateTask.ps1 -Action Uninstall -RemoveFiles
 ```
+
+Drop `-RemoveFiles` if you prefer to keep the copied runner under `%LOCALAPPDATA%\Programs\IdleHibernateUnlessAwake`.
 
 ## Configuration
 
