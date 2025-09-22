@@ -1,4 +1,7 @@
 ![Platform](https://img.shields.io/badge/platform-Windows%2011-blue?logo=windows)
+![PowerShell](https://img.shields.io/badge/PowerShell-5.1+-blue?logo=powershell)
+![Version](https://img.shields.io/badge/version-0.6.0-green)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 # IdleHibernateUnlessAwake
 
@@ -74,13 +77,33 @@ Reuse the script to remove the scheduled task. Include `-RemoveFiles` to delete 
 
 ## Changelog
 
-### 0.2.0
-- Added `-SleepSeconds` parameter to control the idle duration before hibernation.
-- Introduced `config.json` for easier configuration.
+### 0.6.0 (22 septembre 2025)
+- Amélioration des messages en français
+- Meilleure gestion de l'encodage UTF-8
+- Support des caractères accentués dans les logs
 
-### 0.1.0
-- Initial release.
-- Added `-EnableLogging` parameter for debugging.
+### 0.5.0 (15 septembre 2025)
+- Optimisation de la copie des fichiers (vérification préalable de leur existence)
+- Correction de la gestion des chemins sources pour l'installation en ligne
+- Amélioration de la stabilité de l'installation en ligne
+
+### 0.4.0 (10 septembre 2025)
+- Support complet de PowerToys 1.0
+- Détection améliorée du mode Awake
+- Journalisation détaillée des sources de configuration
+
+### 0.3.0 (5 septembre 2025)
+- Ajout du paramètre `-RunElevated`
+- Support de l'installation avec droits administrateur
+- Meilleure gestion des erreurs d'installation
+
+### 0.2.0 (1 septembre 2025)
+- Ajout du paramètre `-SleepSeconds` pour contrôler la durée d'inactivité
+- Introduction de `config.json` pour une configuration plus facile
+
+### v0.1.0 (25 août 2025)
+- Version initiale
+- Ajout du paramètre `-EnableLogging` pour le débogage
 
 
 
