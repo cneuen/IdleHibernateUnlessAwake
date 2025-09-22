@@ -3,7 +3,7 @@
 ![Version](https://img.shields.io/badge/version-0.6.0-green)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-# IdleHibernateUnlessAwake
+# IdleToHibernate
 
 Forces Windows to hibernate (`shutdown /h /f`) after a configurable period of idle time, **unless PowerToys Awake is ON**.
 
