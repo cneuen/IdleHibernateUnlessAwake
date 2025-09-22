@@ -5,7 +5,8 @@ param(
     [string]$TaskName = 'IdleHibernateUnlessAwake',
     [int]$SleepSeconds = 900,
     [switch]$EnableLogging,
-    [switch]$RemoveFiles
+    [switch]$RemoveFiles,
+    [switch]$RunElevated
 )
 
 $ErrorActionPreference = 'Stop'
@@ -105,10 +106,14 @@ try {
             }
             $runnerArguments += " -SleepSeconds $SleepSeconds"
 
+            $runLevel = if ($RunElevated) { 'HighestAvailable' } else { 'LeastPrivilege' }
+
             $xmlTemplate = Get-Content -Path $templatePath -Raw -Encoding Unicode
             $commandEscaped = [System.Security.SecurityElement]::Escape($commandPath)
             $argumentsEscaped = [System.Security.SecurityElement]::Escape($runnerArguments)
-            $xmlContent = $xmlTemplate.Replace('__COMMAND__', $commandEscaped).Replace('__ARGUMENTS__', $argumentsEscaped)
+            $xmlContent = $xmlTemplate.Replace('__COMMAND__', $commandEscaped)
+            $xmlContent = $xmlContent.Replace('__ARGUMENTS__', $argumentsEscaped)
+            $xmlContent = $xmlContent.Replace('__RUNLEVEL__', $runLevel)
 
             $tempXml = Join-Path ([System.IO.Path]::GetTempPath()) ("IdleHibernateTask_{0}.xml" -f [guid]::NewGuid())
             try {
@@ -146,4 +151,3 @@ finally {
         Remove-Item -Path $onlineCacheRoot -Recurse -Force
     }
 }
-

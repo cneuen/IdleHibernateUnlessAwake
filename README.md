@@ -40,7 +40,7 @@ Run the installer directly from GitHub. It pulls the latest runner and XML templ
 Set-ExecutionPolicy Bypass -Scope Process -Force; iex "& { $(Invoke-WebRequest 'https://raw.githubusercontent.com/cneuen/IdleHibernateUnlessAwake/main/tools/Install-IdleHibernateTask.ps1').Content } -Action Install -SleepSeconds 900"
 ```
 
-Add `-EnableLogging` (or any other parameter shown below) to the end of the command to tweak the behavior before the task is created.
+Add optional switches like `-EnableLogging` or `-RunElevated` to tweak the behavior before the task is created.
 
 ## Local Installation
 
@@ -64,10 +64,11 @@ Reuse the script to remove the scheduled task. Include `-RemoveFiles` to delete 
 
 `tools/Install-IdleHibernateTask.ps1` accepts:
 
-- `-SleepSeconds <int>` — idle wait time before hibernation (default: 900 seconds).
-- `-EnableLogging` — forward task execution details to `%LOCALAPPDATA%\IdleHibernateUnlessAwake\IdleAwakeProbe.txt`.
-- `-TaskName <string>` — customise the scheduled-task identifier.
-- `-RemoveFiles` — optional cleanup toggle for the uninstall action.
+- `-SleepSeconds <int>` - idle wait time before hibernation (default: 900 seconds).
+- `-EnableLogging` - forward task execution details to `%LOCALAPPDATA%\\IdleHibernateUnlessAwake\\IdleAwakeProbe.txt`.
+- `-TaskName <string>` - customise the scheduled-task identifier.
+- `-RemoveFiles` - optional cleanup toggle for the uninstall action.
+- `-RunElevated` - request `HighestAvailable` run level (requires admin); leave it off for standard user installs.
 
 `src/runner.ps1` also exposes `-SleepSeconds` and `-EnableLogging` for ad-hoc testing should you want to run it manually.
 
@@ -80,4 +81,5 @@ Reuse the script to remove the scheduled task. Include `-RemoveFiles` to delete 
 ### 0.1.0
 - Initial release.
 - Added `-EnableLogging` parameter for debugging.
+
 
