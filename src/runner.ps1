@@ -62,29 +62,8 @@ try {
 
     Write-Log "Awake OFF -> waiting $SleepSeconds seconds before hibernate"
     Start-Sleep -Seconds $SleepSeconds
-    Write-Log "After $SleepSeconds sec wait -> shutdown /h /f"
-
-    # Re-vérifier l'état d'Awake après l'attente
-    if (Test-Path $reg) {
-        $p = Get-ItemProperty -Path $reg -ErrorAction SilentlyContinue
-        if ($p -and $p.PSObject.Properties.Name -contains 'Enabled' -and [bool]$p.Enabled) {
-            Write-Log "Awake turned ON during wait -> skipping hibernate"
-            exit 1
-        }
-    }
-
-    # Double-check du JSON aussi
-    if (Test-Path $json) {
-        try {
-            $cfg = Get-Content -Path $json -Raw | ConvertFrom-Json
-            if ($cfg.properties.keepAwake) {
-                Write-Log "Awake turned ON during wait -> skipping hibernate"
-                exit 1
-            }
-        } catch {}
-    }
-
-    Write-Log "Still no Awake -> proceeding with hibernate"
+    Write-Log "After $SleepSeconds sec wait -> initiating hibernate"
+    
     Start-Process -FilePath 'shutdown.exe' -ArgumentList '/h','/f'
     exit 0
 }

@@ -1,6 +1,6 @@
 ![Platform](https://img.shields.io/badge/platform-Windows%2011-blue?logo=windows)
 ![PowerShell](https://img.shields.io/badge/PowerShell-5.1+-blue?logo=powershell)
-![Version](https://img.shields.io/badge/version-0.7.0-green)
+![Version](https://img.shields.io/badge/version-0.8.0-green)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 # IdleToHibernate
