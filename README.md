@@ -1,6 +1,6 @@
 ![Platform](https://img.shields.io/badge/platform-Windows%2011-blue?logo=windows)
 ![PowerShell](https://img.shields.io/badge/PowerShell-5.1+-blue?logo=powershell)
-![Version](https://img.shields.io/badge/version-0.6.0-green)
+![Version](https://img.shields.io/badge/version-0.7.0-green)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 # IdleHibernateUnlessAwake
@@ -76,6 +76,12 @@ Reuse the script to remove the scheduled task. Include `-RemoveFiles` to delete 
 `src/runner.ps1` also exposes `-SleepSeconds` and `-EnableLogging` for ad-hoc testing should you want to run it manually.
 
 ## Changelog
+
+### 0.7.0
+- Optimized runner execution flow
+- Early check for PowerToys Awake status
+- Added double-check before hibernating
+- Improved logging with detailed state changes
 
 ### 0.6.0
 - Improved French localization
